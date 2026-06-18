@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Control de EPP</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --c-bg: #F5F4F0;
+    --c-surface: #FFFFFF;
+    --c-surface2: #F0EDE8;
+    --c-border: #E2DED6;
+    --c-text: #1A1916;
+    --c-muted: #7A7770;
+    --c-accent: #1A5CCC;
+    --c-accent-light: #EAF0FB;
+    --c-danger: #CC2A1A;
+    --c-danger-light: #FBE9E7;
+    --c-warn: #CC8A00;
+    --c-warn-light: #FFF8E6;
+    --c-success: #1A7A4A;
+    --c-success-light: #E7F6ED;
+    --c-radius: 12px;
+    --c-radius-sm: 8px;
+    --c-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--c-bg);
+    color: var(--c-text);
+    font-size: 15px;
+    min-height: 100vh;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--c-text);
+    color: #fff;
+    padding: 0 20px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: -0.3px;
+  }
+  .topbar-logo svg { opacity: 0.9; }
+  .topbar-date {
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* NAV */
+  .nav {
+    background: var(--c-surface);
+    border-bottom: 1px solid var(--c-border);
+    display: flex;
+    overflow-x: auto;
+    gap: 0;
+    padding: 0 16px;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 14px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--c-muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .nav-btn.active {
+    color: var(--c-accent);
+    border-bottom-color: var(--c-accent);
+  }
+  .nav-btn:hover { color: var(--c-text); }
+
+  /* MAIN */
+  .main { padding: 20px; max-width: 800px; margin: 0 auto; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.visible { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--c-shadow);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--c-muted);
+    margin-bottom: 16px;
+  }
+
+  /* LABELS & INPUTS */
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--c-muted);
+    margin-bottom: 6px;
+  }
+  select, input[type=text], input[type=month] {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    background: var(--c-surface);
+    color: var(--c-text);
+    appearance: none;
+    outline: none;
+    transition: border 0.15s;
+    margin-bottom: 16px;
+  }
+  select:focus, input:focus {
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 3px rgba(26,92,204,0.1);
+  }
+
+  /* EPP CHECKLIST */
+  .epp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .epp-item {
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    user-select: none;
+  }
+  .epp-item:hover { background: var(--c-surface2); }
+  .epp-item.selected {
+    background: var(--c-danger-light);
+    border-color: var(--c-danger);
+    color: var(--c-danger);
+    font-weight: 500;
+  }
+  .epp-check {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--c-border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .epp-item.selected .epp-check {
+    background: var(--c-danger);
+    border-color: var(--c-danger);
+  }
+  .epp-item.selected .epp-check::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: 2px solid white;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+    display: block;
+  }
+
+  /* EMPLEADOS LIST */
+  .empleado-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .empleado-btn {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+    padding: 12px 16px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .empleado-btn:hover { border-color: var(--c-accent); background: var(--c-accent-light); }
+  .empleado-btn.alerta { border-color: var(--c-danger); background: var(--c-danger-light); }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    letter-spacing: 0.3px;
+  }
+  .badge-danger { background: var(--c-danger); color: white; }
+  .badge-warn { background: var(--c-warn); color: white; }
+  .badge-success { background: var(--c-success); color: white; }
+  .badge-neutral { background: var(--c-surface2); color: var(--c-muted); }
+
+  /* BUTTONS */
+  .btn {
+    padding: 12px 24px;
+    border-radius: var(--c-radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .btn-primary {
+    background: var(--c-accent);
+    color: white;
+  }
+  .btn-primary:hover { background: #1447A8; }
+  .btn-danger {
+    background: var(--c-danger);
+    color: white;
+  }
+  .btn-danger:hover { background: #A51F12; }
+  .btn-outline {
+    background: transparent;
+    color: var(--c-text);
+    border: 1px solid var(--c-border);
+  }
+  .btn-outline:hover { background: var(--c-surface2); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-sm { padding: 8px 16px; font-size: 13px; width: auto; }
+
+  /* FIRMA CANVAS */
+  .firma-wrap {
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+    overflow: hidden;
+    background: white;
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .firma-label {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    font-size: 12px;
+    color: var(--c-muted);
+    pointer-events: none;
+    font-family: 'DM Mono', monospace;
+  }
+  canvas#firmaCanvas {
+    display: block;
+    width: 100%;
+    height: 180px;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  .firma-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  /* ALERTS */
+  .alert {
+    border-radius: var(--c-radius-sm);
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .alert.visible { display: block; }
+  .alert-danger { background: var(--c-danger-light); color: var(--c-danger); border: 1px solid rgba(204,42,26,0.2); }
+  .alert-success { background: var(--c-success-light); color: var(--c-success); border: 1px solid rgba(26,122,74,0.2); }
+  .alert-warn { background: var(--c-warn-light); color: var(--c-warn); border: 1px solid rgba(204,138,0,0.2); }
+  .alert-title { font-weight: 600; margin-bottom: 4px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--c-surface);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px;
+    width: 100%;
+    max-width: 800px;
+    max-height: 92vh;
+    overflow-y: auto;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .modal-title { font-size: 18px; font-weight: 600; }
+  .modal-close {
+    background: var(--c-surface2);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--c-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* REPORTE */
+  .reporte-header {
+    background: var(--c-text);
+    color: white;
+    border-radius: var(--c-radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .reporte-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .reporte-sub { font-size: 13px; opacity: 0.6; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--c-radius-sm);
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-num { font-size: 26px; font-weight: 600; }
+  .stat-lbl { font-size: 12px; color: var(--c-muted); margin-top: 2px; }
+  .reporte-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--c-border);
+  }
+  .reporte-row:last-child { border-bottom: none; }
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--c-accent-light);
+    color: var(--c-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .avatar.danger { background: var(--c-danger-light); color: var(--c-danger); }
+  .reporte-info { flex: 1; min-width: 0; }
+  .reporte-nombre { font-weight: 500; font-size: 14px; }
+  .reporte-area { font-size: 12px; color: var(--c-muted); }
+  .reporte-faltas { font-size: 12px; margin-top: 4px; color: var(--c-danger); }
+
+  /* SPINNER */
+  .spinner-wrap { display: flex; justify-content: center; padding: 32px 0; }
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--c-border);
+    border-top-color: var(--c-accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* LOADING STATE */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(245,244,240,0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    gap: 14px;
+    font-size: 14px;
+    color: var(--c-muted);
+  }
+  .loading-overlay.hidden { display: none; }
+
+  /* DIVIDER */
+  .divider { height: 1px; background: var(--c-border); margin: 20px 0; }
+
+  /* PASO INDICATOR */
+  .pasos {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border-radius: var(--c-radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--c-border);
+  }
+  .paso {
+    flex: 1;
+    text-align: center;
+    padding: 10px 8px;
+    font-size: 13px;
+    background: var(--c-surface2);
+    color: var(--c-muted);
+    border-right: 1px solid var(--c-border);
+    font-weight: 500;
+  }
+  .paso:last-child { border-right: none; }
+  .paso.active {
+    background: var(--c-accent);
+    color: white;
+  }
+  .paso.done {
+    background: var(--c-success-light);
+    color: var(--c-success);
+  }
+
+  /* AREA BADGE */
+  .area-tag {
+    display: inline-block;
+    font-size: 11px;
+    background: var(--c-surface2);
+    color: var(--c-muted);
+    padding: 3px 10px;
+    border-radius: 99px;
+    margin-bottom: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--c-muted);
+    font-size: 14px;
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+
+  /* AREA ITEM IN REPORT */
+  .area-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--c-muted);
+    margin: 16px 0 8px;
+  }
+
+  @media (max-width: 480px) {
+    .epp-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <span id="loadingMsg">Cargando...</span>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <rect x="2" y="2" width="7" height="7" rx="2" fill="white" opacity="0.9"/>
+      <rect x="11" y="2" width="7" height="7" rx="2" fill="white" opacity="0.5"/>
+      <rect x="2" y="11" width="7" height="7" rx="2" fill="white" opacity="0.5"/>
+      <rect x="11" y="11" width="7" height="7" rx="2" fill="white" opacity="0.9"/>
+    </svg>
+    Control de EPP
+  </div>
+  <div class="topbar-date" id="topbarDate"></div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn active" onclick="showSection('registro')">Registrar</button>
+  <button class="nav-btn" onclick="showSection('reporteDiario')">Rep. Diario</button>
+  <button class="nav-btn" onclick="showSection('reporteMensual')">Rep. Mensual</button>
+  <button class="nav-btn" onclick="showSection('admin')">Administrar</button>
+</div>
+
+<!-- ==================== SECCIÓN: REGISTRO ==================== -->
+<div class="main">
+<div class="section visible" id="s-registro">
+
+  <!-- PASOS -->
+  <div class="pasos">
+    <div class="paso active" id="paso1">1. Área</div>
+    <div class="paso" id="paso2">2. Empleado</div>
+    <div class="paso" id="paso3">3. Faltas</div>
+    <div class="paso" id="paso4">4. Firma</div>
+  </div>
+
+  <!-- PASO 1: SELECCIONAR ÁREA -->
+  <div id="stepArea">
+    <div class="card">
+      <div class="card-title">Seleccionar área</div>
+      <label>Área de la planta</label>
+      <select id="selectArea" onchange="onAreaChange()">
+        <option value="">— Selecciona un área —</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- PASO 2: SELECCIONAR EMPLEADO -->
+  <div id="stepEmpleado" style="display:none">
+    <div class="card">
+      <div class="card-title">Seleccionar empleado</div>
+      <span class="area-tag" id="areaTagEmpleado"></span>
+      <div class="empleado-list" id="empleadoList"></div>
+      <button class="btn btn-outline" onclick="goStep(1)">← Cambiar área</button>
+    </div>
+  </div>
+
+  <!-- PASO 3: SELECCIONAR FALTAS EPP -->
+  <div id="stepFaltas" style="display:none">
+    <div class="card">
+      <div class="card-title">EPP incumplido</div>
+      <span class="area-tag" id="areaTagFaltas"></span>
+      <p style="font-size:14px;margin-bottom:8px;">Empleado: <strong id="nombreTagFaltas"></strong></p>
+
+      <!-- Alerta incumplimientos previos -->
+      <div class="alert alert-warn" id="alertaPrevios">
+        <div class="alert-title" id="alertaPreviosTitulo"></div>
+        <div id="alertaPreviosBody"></div>
+      </div>
+
+      <div class="alert alert-danger" id="alertaMax">
+        <div class="alert-title">⚠️ Límite alcanzado</div>
+        Este empleado ya tiene 3 incumplimientos registrados. Notifica al supervisor.
+      </div>
+
+      <label style="margin-bottom:10px;">Selecciona los EPP que incumple:</label>
+      <div class="epp-grid" id="eppGrid"></div>
+
+      <div class="alert alert-danger" id="alertaSelecciona">
+        <div>Selecciona al menos un EPP incumplido.</div>
+      </div>
+
+      <button class="btn btn-danger" id="btnSiguienteFirma" onclick="goStep(4)">Continuar → Firma</button>
+      <div style="height:10px"></div>
+      <button class="btn btn-outline" onclick="goStep(2)">← Cambiar empleado</button>
+    </div>
+  </div>
+
+  <!-- PASO 4: FIRMA ELECTRÓNICA -->
+  <div id="stepFirma" style="display:none">
+    <div class="card">
+      <div class="card-title">Firma electrónica</div>
+      <p style="font-size:14px;margin-bottom:4px;">
+        Empleado: <strong id="nombreTagFirma"></strong>
+      </p>
+      <p style="font-size:13px;color:var(--c-muted);margin-bottom:16px;">
+        El empleado debe firmar en el recuadro de abajo.
+      </p>
+
+      <div class="firma-wrap">
+        <span class="firma-label">Firme aquí</span>
+        <canvas id="firmaCanvas" width="750" height="300"></canvas>
+      </div>
+      <div class="firma-actions">
+        <button class="btn btn-outline btn-sm" onclick="limpiarFirma()">Limpiar firma</button>
+        <button class="btn btn-outline btn-sm" onclick="omitirFirma()">Omitir firma</button>
+      </div>
+
+      <div class="alert alert-danger" id="alertaFirma">
+        <div>Agrega la firma del empleado o usa "Omitir firma".</div>
+      </div>
+
+      <div class="alert" id="alertaRegistro"></div>
+
+      <button class="btn btn-primary" onclick="registrarIncumplimiento()">Registrar incumplimiento</button>
+      <div style="height:10px"></div>
+      <button class="btn btn-outline" onclick="goStep(3)">← Cambiar EPP</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== SECCIÓN: REPORTE DIARIO ==================== -->
+<div class="section" id="s-reporteDiario">
+  <div class="card">
+    <div class="card-title">Reporte del día</div>
+    <button class="btn btn-primary" onclick="generarReporteDiario()">Generar reporte de hoy</button>
+  </div>
+  <div id="reporteDiarioContent"></div>
+</div>
+
+<!-- ==================== SECCIÓN: REPORTE MENSUAL ==================== -->
+<div class="section" id="s-reporteMensual">
+  <div class="card">
+    <div class="card-title">Reporte mensual</div>
+    <label>Selecciona mes y año</label>
+    <input type="month" id="inputMes" style="margin-bottom:12px;"/>
+    <button class="btn btn-primary" onclick="generarReporteMensual()">Generar reporte</button>
+  </div>
+  <div id="reporteMensualContent"></div>
+</div>
+
+<!-- ==================== SECCIÓN: ADMINISTRAR ==================== -->
+<div class="section" id="s-admin">
+  <div class="card">
+    <div class="card-title">Agregar empleado a área</div>
+    <label>Área</label>
+    <select id="adminArea">
+      <option value="">— Selecciona —</option>
+    </select>
+    <label>Nombre del empleado</label>
+    <input type="text" id="adminNombre" placeholder="Nombre completo"/>
+    <button class="btn btn-primary" onclick="agregarEmpleado()">Agregar empleado</button>
+    <div class="alert" id="alertaAdmin" style="margin-top:14px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Inicializar hojas de cálculo</div>
+    <p style="font-size:14px;color:var(--c-muted);margin-bottom:14px;">
+      Crea los encabezados necesarios en todas las hojas del libro de Control de EPP si aún no existen.
+    </p>
+    <button class="btn btn-outline" onclick="initSheets()">Inicializar hojas</button>
+    <div class="alert" id="alertaInit" style="margin-top:14px;"></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+// ============================================================
+// ESTADO GLOBAL
+// ============================================================
+const STATE = {
+  areas: [],
+  eppItems: [],
+  areaSeleccionada: '',
+  empleadoSeleccionado: '',
+  faltasSeleccionadas: [],
+  firmaOmitida: false,
+  pasoActual: 1
+};
+
+// Firma canvas
+let firmaCtx = null;
+let firmaDibujando = false;
+let firmaTieneTrazo = false;
+
+// ============================================================
+// INICIALIZACIÓN
+// ============================================================
+window.addEventListener('load', () => {
+  setFecha();
+  initFirmaCanvas();
+  setDefaultMes();
+  cargarDatosIniciales();
+});
+
+function setFecha() {
+  const now = new Date();
+  document.getElementById('topbarDate').textContent = now.toLocaleDateString('es-MX', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+  });
+}
+
+function setDefaultMes() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('inputMes').value = `${yyyy}-${mm}`;
+}
+
+function cargarDatosIniciales() {
+  showLoading('Configurando sistema...');
+
+  google.script.run
+    .withSuccessHandler(res => {
+      if (res && res.ok) {
+        // Guardamos todo de un solo golpe en el estado global
+        STATE.areas = res.areas;
+        STATE.eppItems = res.eppItems;
+
+        // Ejecutamos las funciones visuales
+        poblarSelectAreas();
+        buildEppGrid();
+
+        hideLoading();
+        console.log("App lista para operar");
+      } else {
+        hideLoading();
+        alert("Error de datos: " + (res.mensaje || "Respuesta inválida"));
+      }
+    })
+    .withFailureHandler(err => {
+      hideLoading();
+      console.error("Error crítico de servidor:", err);
+      alert("No se pudo conectar con Google Sheets. Verifica tu conexión.");
+    })
+    .getInitialData(); // Esta única función trae TODO
+}
+
+function poblarSelectAreas() {
+  const selects = ['selectArea', 'adminArea'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '<option value="">— Selecciona un área —</option>';
+    STATE.areas.forEach(a => {
+      const o = document.createElement('option');
+      o.value = a;
+      o.textContent = a;
+      el.appendChild(o);
+    });
+  });
+}
+
+function buildEppGrid() {
+  const grid = document.getElementById('eppGrid');
+  if (!grid || STATE.eppItems.length === 0) return;
+  grid.innerHTML = '';
+  STATE.eppItems.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'epp-item';
+    div.dataset.item = item;
+    div.innerHTML = `<div class="epp-check"></div><span>${item}</span>`;
+    div.addEventListener('click', () => toggleEpp(div, item));
+    grid.appendChild(div);
+  });
+}
+
+// ============================================================
+// NAVEGACIÓN POR PASOS
+// ============================================================
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.getElementById('s-' + id).classList.add('visible');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function goStep(paso) {
+  if (paso === 3 && !STATE.empleadoSeleccionado) return;
+  if (paso === 4) {
+    const seleccionadas = document.querySelectorAll('.epp-item.selected');
+    if (seleccionadas.length === 0) {
+      document.getElementById('alertaSelecciona').classList.add('visible');
+      return;
+    }
+    document.getElementById('alertaSelecciona').classList.remove('visible');
+    STATE.faltasSeleccionadas = Array.from(seleccionadas).map(el => el.dataset.item);
+  }
+  STATE.pasoActual = paso;
+  renderPasos();
+  mostrarStep(paso);
+}
+
+function renderPasos() {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('paso' + i);
+    el.className = 'paso';
+    if (i === STATE.pasoActual) el.classList.add('active');
+    else if (i < STATE.pasoActual) el.classList.add('done');
+  }
+}
+
+function mostrarStep(n) {
+  ['stepArea','stepEmpleado','stepFaltas','stepFirma'].forEach((id, idx) => {
+    document.getElementById(id).style.display = (idx + 1 === n) ? 'block' : 'none';
+  });
+  if (n === 4) {
+    document.getElementById('nombreTagFirma').textContent = STATE.empleadoSeleccionado;
+    limpiarFirma();
+    document.getElementById('alertaFirma').classList.remove('visible');
+    document.getElementById('alertaRegistro').className = 'alert';
+  }
+}
+
+// ============================================================
+// PASO 1 → 2: CARGAR EMPLEADOS
+// ============================================================
+function onAreaChange() {
+  const area = document.getElementById('selectArea').value;
+  if (!area) return;
+  STATE.areaSeleccionada = area;
+  STATE.empleadoSeleccionado = '';
+  STATE.pasoActual = 2;
+  renderPasos();
+  mostrarStep(2);
+  document.getElementById('areaTagEmpleado').textContent = area;
+  document.getElementById('areaTagFaltas').textContent = area;
+
+  showLoading('Cargando personal...');
+  const list = document.getElementById('empleadoList');
+  list.innerHTML = '<div class="spinner-wrap"><div class="spinner"></div></div>';
+
+  google.script.run
+    .withSuccessHandler(personal => {
+      hideLoading();
+      list.innerHTML = '';
+      if (!personal || personal.length === 0) {
+        list.innerHTML = '<div class="empty"><div class="empty-icon">👤</div>No hay personal registrado en esta área.</div>';
+        return;
+      }
+      personal.forEach(nombre => {
+        const btn = document.createElement('button');
+        btn.className = 'empleado-btn';
+        btn.innerHTML = `<span>${nombre}</span><span class="badge badge-neutral">Ver historial</span>`;
+        btn.addEventListener('click', () => seleccionarEmpleado(nombre, btn));
+        list.appendChild(btn);
+      });
+      // Verificar alertas
+      personal.forEach(nombre => verificarAlertaEmpleado(area, nombre));
+    })
+    .withFailureHandler(() => hideLoading())
+    .getPersonal(area);
+}
+
+function verificarAlertaEmpleado(area, nombre) {
+  google.script.run
+    .withSuccessHandler(result => {
+      if (!result) return;
+      const btns = document.querySelectorAll('.empleado-btn');
+      btns.forEach(btn => {
+        if (btn.querySelector('span').textContent === nombre) {
+          const badge = btn.querySelector('.badge');
+          if (result.acumulados >= 3) {
+            btn.classList.add('alerta');
+            badge.className = 'badge badge-danger';
+            badge.textContent = '⚠ 3 faltas';
+          } else if (result.acumulados === 2) {
+            badge.className = 'badge badge-warn';
+            badge.textContent = `${result.acumulados} faltas`;
+          } else if (result.acumulados > 0) {
+            badge.className = 'badge badge-neutral';
+            badge.textContent = `${result.acumulados} falta(s)`;
+          }
+        }
+      });
+    })
+    .verificarAlerta(area, nombre);
+}
+
+// ============================================================
+// PASO 2 → 3: SELECCIONAR EMPLEADO
+// ============================================================
+function seleccionarEmpleado(nombre, btn) {
+  STATE.empleadoSeleccionado = nombre;
+  STATE.pasoActual = 3;
+  renderPasos();
+  mostrarStep(3);
+  document.getElementById('nombreTagFaltas').textContent = nombre;
+  document.querySelectorAll('.epp-item').forEach(el => el.classList.remove('selected'));
+  document.getElementById('alertaSelecciona').classList.remove('visible');
+  document.getElementById('alertaMax').classList.remove('visible');
+  document.getElementById('alertaPrevios').classList.remove('visible');
+
+  // Cargar historial del empleado
+  google.script.run
+    .withSuccessHandler(result => {
+      if (!result.ok || !result.data) return;
+      const d = result.data;
+      if (d.total >= 3) {
+        document.getElementById('alertaMax').classList.add('visible');
+        document.getElementById('btnSiguienteFirma').disabled = true;
+        return;
+      }
+      document.getElementById('btnSiguienteFirma').disabled = false;
+      if (d.total > 0) {
+        const prevDiv = document.getElementById('alertaPrevios');
+        prevDiv.classList.add('visible');
+        document.getElementById('alertaPreviosTitulo').textContent = `⚠ Este empleado tiene ${d.total} incumplimiento(s) previo(s)`;
+        let body = '';
+        if (d.falta1) body += `<div style="margin-top:4px">Falta 1: ${d.falta1}</div>`;
+        if (d.falta2) body += `<div>Falta 2: ${d.falta2}</div>`;
+        document.getElementById('alertaPreviosBody').innerHTML = body;
+      }
+    })
+    .getIncumplimientosEmpleado(STATE.areaSeleccionada, nombre);
+}
+
+// ============================================================
+// EPP TOGGLE
+// ============================================================
+function toggleEpp(el, item) {
+  el.classList.toggle('selected');
+  document.getElementById('alertaSelecciona').classList.remove('visible');
+}
+
+// ============================================================
+// FIRMA CANVAS
+// ============================================================
+function initFirmaCanvas() {
+  const canvas = document.getElementById('firmaCanvas');
+  firmaCtx = canvas.getContext('2d');
+  firmaCtx.strokeStyle = '#1A1916';
+  firmaCtx.lineWidth = 2.5;
+  firmaCtx.lineCap = 'round';
+  firmaCtx.lineJoin = 'round';
+
+  const getPos = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const src = e.touches ? e.touches[0] : e;
+    return {
+      x: (src.clientX - rect.left) * scaleX,
+      y: (src.clientY - rect.top) * scaleY
+    };
+  };
+
+  canvas.addEventListener('mousedown', e => { firmaDibujando = true; const p = getPos(e); firmaCtx.beginPath(); firmaCtx.moveTo(p.x, p.y); });
+  canvas.addEventListener('mousemove', e => { if (!firmaDibujando) return; const p = getPos(e); firmaCtx.lineTo(p.x, p.y); firmaCtx.stroke(); firmaTieneTrazo = true; });
+  canvas.addEventListener('mouseup', () => { firmaDibujando = false; });
+  canvas.addEventListener('mouseleave', () => { firmaDibujando = false; });
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); firmaDibujando = true; const p = getPos(e); firmaCtx.beginPath(); firmaCtx.moveTo(p.x, p.y); });
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!firmaDibujando) return; const p = getPos(e); firmaCtx.lineTo(p.x, p.y); firmaCtx.stroke(); firmaTieneTrazo = true; });
+  canvas.addEventListener('touchend', () => { firmaDibujando = false; });
+}
+
+function limpiarFirma() {
+  const canvas = document.getElementById('firmaCanvas');
+  firmaCtx.clearRect(0, 0, canvas.width, canvas.height);
+  firmaTieneTrazo = false;
+  STATE.firmaOmitida = false;
+}
+
+function omitirFirma() {
+  STATE.firmaOmitida = true;
+  limpiarFirma();
+  document.getElementById('alertaFirma').classList.remove('visible');
+  mostrarAlerta('alertaRegistro', 'warn', 'Firma omitida. Se registrará sin firma electrónica.');
+}
+
+// ============================================================
+// REGISTRAR INCUMPLIMIENTO
+// ============================================================
+function registrarIncumplimiento() {
+  if (!firmaTieneTrazo && !STATE.firmaOmitida) {
+    document.getElementById('alertaFirma').classList.add('visible');
+    return;
+  }
+  document.getElementById('alertaFirma').classList.remove('visible');
+
+  const canvas = document.getElementById('firmaCanvas');
+  const firmaBase64 = firmaTieneTrazo ? canvas.toDataURL('image/png') : null;
+
+  const payload = {
+    area: STATE.areaSeleccionada,
+    nombre: STATE.empleadoSeleccionado,
+    faltas: STATE.faltasSeleccionadas,
+    firmaBase64: firmaBase64
+  };
+
+  showLoading('Registrando incumplimiento...');
+
+  google.script.run
+    .withSuccessHandler(result => {
+      hideLoading();
+      if (result.ok) {
+        let tipo = 'success';
+        let titulo = '✓ Registrado';
+        if (result.alerta3) { tipo = 'danger'; titulo = '⚠️ Alerta: 3 incumplimientos'; }
+        mostrarAlerta('alertaRegistro', tipo, `${titulo}\n${result.mensaje}`);
+        // Reset después de 3 segundos
+        setTimeout(() => resetRegistro(), 3500);
+      } else {
+        mostrarAlerta('alertaRegistro', 'danger', '✗ Error: ' + result.mensaje);
+      }
+    })
+    .withFailureHandler(err => {
+      hideLoading();
+      mostrarAlerta('alertaRegistro', 'danger', 'Error de conexión: ' + err.message);
+    })
+    .registrarIncumplimiento(payload);
+}
+
+function resetRegistro() {
+  STATE.areaSeleccionada = '';
+  STATE.empleadoSeleccionado = '';
+  STATE.faltasSeleccionadas = [];
+  STATE.firmaOmitida = false;
+  STATE.pasoActual = 1;
+  document.getElementById('selectArea').value = '';
+  renderPasos();
+  mostrarStep(1);
+  limpiarFirma();
+}
+
+// ============================================================
+// REPORTE DIARIO
+// ============================================================
+function generarReporteDiario() {
+  showLoading('Generando reporte diario...');
+  const cont = document.getElementById('reporteDiarioContent');
+  cont.innerHTML = '';
+
+  google.script.run
+    .withSuccessHandler(result => {
+      hideLoading();
+      if (!result.ok) { cont.innerHTML = `<div class="alert alert-danger visible">${result.mensaje}</div>`; return; }
+
+      if (result.data.length === 0) {
+        cont.innerHTML = `<div class="card"><div class="empty"><div class="empty-icon">✓</div>Sin incumplimientos registrados hoy (${result.fecha}).</div></div>`;
+        return;
+      }
+
+      const total = result.data.length;
+      const conAlerta = result.data.filter(r => r.totalFaltas >= 3).length;
+
+      // Agrupar por área
+      const porArea = {};
+      result.data.forEach(r => {
+        if (!porArea[r.area]) porArea[r.area] = [];
+        porArea[r.area].push(r);
+      });
+
+      let html = `
+        <div class="reporte-header">
+          <div class="reporte-title">Reporte Diario</div>
+          <div class="reporte-sub">${result.fecha}</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">Incumplimientos</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--c-danger)">${conAlerta}</div><div class="stat-lbl">Con 3 faltas</div></div>
+          <div class="stat-card"><div class="stat-num">${Object.keys(porArea).length}</div><div class="stat-lbl">Áreas afectadas</div></div>
+        </div>
+        <div class="card">`;
+
+      Object.entries(porArea).forEach(([area, empleados]) => {
+        html += `<div class="area-section-title">${area}</div>`;
+        empleados.forEach(r => {
+          const esAlerta = r.totalFaltas >= 3;
+          const iniciales = r.nombre.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
+          html += `
+            <div class="reporte-row">
+              <div class="avatar ${esAlerta ? 'danger' : ''}">${iniciales}</div>
+              <div class="reporte-info">
+                <div class="reporte-nombre">${r.nombre}
+                  ${esAlerta ? '<span class="badge badge-danger" style="margin-left:8px">⚠ 3 faltas</span>' : ''}
+                </div>
+                <div class="reporte-area">${r.timestamp}</div>
+                <div class="reporte-faltas">${r.faltas.join(' · ')}</div>
+              </div>
+            </div>`;
+        });
+      });
+
+      html += `</div>`;
+      cont.innerHTML = html;
+    })
+    .withFailureHandler(err => { hideLoading(); })
+    .getReporteDiario();
+}
+
+// ============================================================
+// REPORTE MENSUAL
+// ============================================================
+function generarReporteMensual() {
+  const val = document.getElementById('inputMes').value;
+  if (!val) return;
+  const [anio, mes] = val.split('-').map(Number);
+
+  showLoading('Generando reporte mensual...');
+  const cont = document.getElementById('reporteMensualContent');
+  cont.innerHTML = '';
+
+  google.script.run
+    .withSuccessHandler(result => {
+      hideLoading();
+      if (!result.ok) { cont.innerHTML = `<div class="alert alert-danger visible">${result.mensaje}</div>`; return; }
+
+      const r = result.resumen;
+      if (result.data.length === 0) {
+        cont.innerHTML = `<div class="card"><div class="empty"><div class="empty-icon">✓</div>Sin incumplimientos en ${r.mes}.</div></div>`;
+        return;
+      }
+
+      // Área con más incumplimientos
+      const areaMax = Object.entries(r.porArea).sort((a,b) => b[1]-a[1])[0];
+
+      let html = `
+        <div class="reporte-header">
+          <div class="reporte-title">Reporte Mensual</div>
+          <div class="reporte-sub">${r.mes}</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-num">${r.totalIncumplimientos}</div><div class="stat-lbl">Total faltas</div></div>
+          <div class="stat-card"><div class="stat-num">${r.totalEmpleados}</div><div class="stat-lbl">Empleados</div></div>
+          <div class="stat-card"><div class="stat-num" style="color:var(--c-danger)">${r.empleadosConAlerta.length}</div><div class="stat-lbl">Con 3 faltas</div></div>
+        </div>`;
+
+      // Resumen por área
+      if (Object.keys(r.porArea).length > 0) {
+        html += `<div class="card"><div class="card-title">Incumplimientos por área</div>`;
+        const maxVal = Math.max(...Object.values(r.porArea));
+        Object.entries(r.porArea).sort((a,b) => b[1]-a[1]).forEach(([area, cant]) => {
+          const pct = Math.round((cant / maxVal) * 100);
+          html += `
+            <div style="margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+                <span>${area}</span><strong>${cant}</strong>
+              </div>
+              <div style="background:var(--c-surface2);border-radius:4px;height:6px;">
+                <div style="background:var(--c-danger);width:${pct}%;height:6px;border-radius:4px;"></div>
+              </div>
+            </div>`;
+        });
+        html += `</div>`;
+      }
+
+      // Empleados con alerta
+      if (r.empleadosConAlerta.length > 0) {
+        html += `<div class="card"><div class="card-title">⚠ Empleados con 3 incumplimientos</div>`;
+        r.empleadosConAlerta.forEach(e => {
+          html += `<div class="reporte-row">
+            <div class="avatar danger">${e.nombre.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase()}</div>
+            <div class="reporte-info">
+              <div class="reporte-nombre">${e.nombre}</div>
+              <div class="reporte-area">${e.area}</div>
+            </div>
+            <span class="badge badge-danger">3 faltas</span>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      // Detalle completo
+      const porArea = {};
+      result.data.forEach(row => {
+        if (!porArea[row.area]) porArea[row.area] = [];
+        porArea[row.area].push(row);
+      });
+
+      html += `<div class="card"><div class="card-title">Detalle completo</div>`;
+      Object.entries(porArea).forEach(([area, empleados]) => {
+        html += `<div class="area-section-title">${area}</div>`;
+        empleados.forEach(row => {
+          const iniciales = row.nombre.split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
+          html += `
+            <div class="reporte-row">
+              <div class="avatar ${row.totalFaltas>=3?'danger':''}">${iniciales}</div>
+              <div class="reporte-info">
+                <div class="reporte-nombre">${row.nombre}</div>
+                <div class="reporte-area">${row.timestamp}</div>
+                <div class="reporte-faltas">${row.faltas.join(' · ')}</div>
+              </div>
+              <span class="badge ${row.totalFaltas>=3?'badge-danger':row.totalFaltas===2?'badge-warn':'badge-neutral'}">${row.totalFaltas}</span>
+            </div>`;
+        });
+      });
+      html += `</div>`;
+      cont.innerHTML = html;
+    })
+    .withFailureHandler(err => hideLoading())
+    .getReporteMensual(anio, mes - 1);
+}
+
+// ============================================================
+// ADMINISTRAR
+// ============================================================
+function agregarEmpleado() {
+  const area = document.getElementById('adminArea').value;
+  const nombre = document.getElementById('adminNombre').value.trim();
+  if (!area || !nombre) {
+    mostrarAlerta('alertaAdmin', 'danger', 'Completa todos los campos.');
+    return;
+  }
+  showLoading('Agregando empleado...');
+  google.script.run
+    .withSuccessHandler(result => {
+      hideLoading();
+      mostrarAlerta('alertaAdmin', result.ok ? 'success' : 'danger', result.mensaje);
+      if (result.ok) document.getElementById('adminNombre').value = '';
+    })
+    .withFailureHandler(() => hideLoading())
+    .agregarEmpleado(area, nombre);
+}
+
+function initSheets() {
+  showLoading('Inicializando hojas...');
+  google.script.run
+    .withSuccessHandler(result => {
+      hideLoading();
+      mostrarAlerta('alertaInit', 'success', 'Hojas inicializadas correctamente.');
+    })
+    .withFailureHandler(err => {
+      hideLoading();
+      mostrarAlerta('alertaInit', 'danger', 'Error: ' + err.message);
+    })
+    .initSheets();
+}
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+function showLoading(msg) {
+  document.getElementById('loadingMsg').textContent = msg || 'Cargando...';
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+function mostrarAlerta(id, tipo, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = `alert alert-${tipo} visible`;
+  el.innerHTML = msg.replace(/\n/g, '<br>');
+}
+</script>
+</body>
+</html>
