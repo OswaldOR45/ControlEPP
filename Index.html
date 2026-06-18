@@ -523,6 +523,7 @@
   <button class="nav-btn active" onclick="showSection('registro')">Registrar</button>
   <button class="nav-btn" onclick="showSection('reporteDiario')">Rep. Diario</button>
   <button class="nav-btn" onclick="showSection('reporteMensual')">Rep. Mensual</button>
+  <button class="nav-btn" onclick="showSection('analisis')">Análisis</button>
   <button class="nav-btn" onclick="showSection('admin')">Administrar</button>
 </div>
 
@@ -644,6 +645,24 @@
   <div id="reporteMensualContent"></div>
 </div>
 
+<!-- ==================== SECCIÓN: ANÁLISIS ==================== -->
+<div class="section" id="s-analisis">
+  <div class="card">
+    <div class="card-title">Análisis de áreas problemáticas</div>
+    <label>Periodo (días hacia atrás)</label>
+    <select id="analisisDias" style="margin-bottom:12px;">
+      <option value="30" selected>Últimos 30 días</option>
+      <option value="7">Últimos 7 días</option>
+      <option value="60">Últimos 60 días</option>
+      <option value="90">Últimos 90 días</option>
+      <option value="180">Últimos 180 días</option>
+      <option value="365">Último año</option>
+    </select>
+    <button class="btn btn-primary" onclick="generarAnalisis()">Generar análisis</button>
+  </div>
+  <div id="analisisContent"></div>
+</div>
+
 <!-- ==================== SECCIÓN: ADMINISTRAR ==================== -->
 <div class="section" id="s-admin">
   <div class="card">
@@ -665,6 +684,18 @@
     </p>
     <button class="btn btn-outline" onclick="initSheets()">Inicializar hojas</button>
     <div class="alert" id="alertaInit" style="margin-top:14px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Migrar datos al nuevo formato</div>
+    <p style="font-size:14px;color:var(--c-muted);margin-bottom:14px;">
+      Mueve las faltas guardadas en el formato anterior (columnas FALTA 1/2/3 de cada
+      área) a la hoja de eventos <strong>_Registro</strong>. Conserva los nombres del
+      padrón. Ejecútalo <strong>una sola vez</strong> tras inicializar las hojas; es seguro
+      repetirlo (no duplica). <strong>Haz una copia del libro antes, por si acaso.</strong>
+    </p>
+    <button class="btn btn-outline" onclick="migrarDatos()">Migrar datos existentes</button>
+    <div class="alert" id="alertaMigrar" style="margin-top:14px;"></div>
   </div>
 </div>
 
