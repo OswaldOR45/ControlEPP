@@ -1,0 +1,12 @@
+﻿# Entorno virtual de Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+
+# Sistema
+.DS_Store
+Thumbs.db
